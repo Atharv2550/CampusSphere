@@ -3,6 +3,7 @@ import {
   Box,
   Typography,
   Paper,
+  Card,
   Tabs,
   Tab,
   Table,

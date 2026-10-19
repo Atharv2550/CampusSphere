@@ -14,6 +14,7 @@ import {
   Skeleton,
   Alert,
   IconButton,
+  Paper,
 } from '@mui/material';
 import {
   Event as EventIcon,
@@ -30,6 +31,7 @@ import {
   LocationOn as LocationIcon,
   QrCode as CodeIcon,
   Check as ConfirmedIcon,
+  Groups as ClubsIcon,
 } from '@mui/icons-material';
 
 import { useAuth } from '../../context/AuthContext';

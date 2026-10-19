@@ -6,6 +6,9 @@ import { theme } from './theme/theme';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 
+// Components
+import { ErrorBoundary } from './components/ErrorBoundary';
+
 // Layouts
 import { PublicLayout } from './layouts/PublicLayout';
 import { AppLayout } from './layouts/AppLayout';
@@ -48,55 +51,57 @@ export function App() {
       <ToastProvider>
         <AuthProvider>
           <BrowserRouter>
-            <Routes>
-              {/* Public Routes with Public Layout */}
-              <Route element={<PublicLayout />}>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/features" element={<FeaturesPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/access-denied" element={<AccessDeniedPage />} />
-              </Route>
+            <ErrorBoundary>
+              <Routes>
+                {/* Public Routes with Public Layout */}
+                <Route element={<PublicLayout />}>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/features" element={<FeaturesPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/access-denied" element={<AccessDeniedPage />} />
+                </Route>
 
-              {/* Authenticated Application Routes with AppLayout */}
-              <Route element={<ProtectedRoute />}>
-                <Route element={<AppLayout />}>
-                  <Route path="/dashboard" element={<StudentDashboard />} />
-                  <Route path="/events" element={<EventsPage />} />
-                  <Route path="/events/:id" element={<EventDetailPage />} />
-                  <Route path="/lost-found" element={<LostFoundPage />} />
-                  <Route path="/lost-found/:id" element={<LostFoundDetailPage />} />
-                  <Route path="/marketplace" element={<MarketplacePage />} />
-                  <Route path="/marketplace/:id" element={<MarketplaceDetailPage />} />
-                  <Route path="/tutoring" element={<TutoringPage />} />
-                  <Route path="/clubs" element={<ClubsPage />} />
-                  <Route path="/clubs/:id" element={<ClubDetailPage />} />
-                  <Route path="/announcements" element={<AnnouncementsPage />} />
-                  <Route path="/notifications" element={<NotificationsPage />} />
-                  <Route path="/bookings" element={<ResourceBookingPage />} />
-                  <Route path="/volunteering" element={<VolunteeringPage />} />
-                  <Route path="/volunteering/my-records" element={<VolunteeringRecordsPage />} />
-                  <Route path="/profile" element={<ProfilePage />} />
+                {/* Authenticated Application Routes with AppLayout */}
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<AppLayout />}>
+                    <Route path="/dashboard" element={<StudentDashboard />} />
+                    <Route path="/events" element={<EventsPage />} />
+                    <Route path="/events/:id" element={<EventDetailPage />} />
+                    <Route path="/lost-found" element={<LostFoundPage />} />
+                    <Route path="/lost-found/:id" element={<LostFoundDetailPage />} />
+                    <Route path="/marketplace" element={<MarketplacePage />} />
+                    <Route path="/marketplace/:id" element={<MarketplaceDetailPage />} />
+                    <Route path="/tutoring" element={<TutoringPage />} />
+                    <Route path="/clubs" element={<ClubsPage />} />
+                    <Route path="/clubs/:id" element={<ClubDetailPage />} />
+                    <Route path="/announcements" element={<AnnouncementsPage />} />
+                    <Route path="/notifications" element={<NotificationsPage />} />
+                    <Route path="/bookings" element={<ResourceBookingPage />} />
+                    <Route path="/volunteering" element={<VolunteeringPage />} />
+                    <Route path="/volunteering/my-records" element={<VolunteeringRecordsPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
 
-                  {/* Staff / Coordinator / Admin Analytics */}
-                  <Route
-                    element={<ProtectedRoute allowedRoles={['admin', 'faculty', 'coordinator', 'resource_manager']} />}
-                  >
-                    <Route path="/analytics" element={<AnalyticsPage />} />
-                  </Route>
+                    {/* Staff / Coordinator / Admin Analytics */}
+                    <Route
+                      element={<ProtectedRoute allowedRoles={['admin', 'faculty', 'coordinator', 'resource_manager']} />}
+                    >
+                      <Route path="/analytics" element={<AnalyticsPage />} />
+                    </Route>
 
-                  {/* Admin Only Portal */}
-                  <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-                    <Route path="/admin" element={<AdminPortalPage />} />
+                    {/* Admin Only Portal */}
+                    <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                      <Route path="/admin" element={<AdminPortalPage />} />
+                    </Route>
                   </Route>
                 </Route>
-              </Route>
 
-              {/* 404 Catch All */}
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
+                {/* 404 Catch All */}
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </ErrorBoundary>
           </BrowserRouter>
         </AuthProvider>
       </ToastProvider>
