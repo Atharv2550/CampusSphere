@@ -36,6 +36,7 @@ import {
 
 import { useToast } from '../../context/ToastContext';
 import api from '../../services/api';
+import { AdminTimetableManagement } from './AdminTimetableManagement';
 
 export const AdminPortalPage = () => {
   const { showSuccess, showError } = useToast();
@@ -161,6 +162,7 @@ export const AdminPortalPage = () => {
         />
         <Tab label="Security Audit Logs" sx={{ fontWeight: 700 }} />
         <Tab label="Platform Policies & Settings" sx={{ fontWeight: 700 }} />
+        <Tab label="Faculty Timetables & Duties" sx={{ fontWeight: 700 }} />
       </Tabs>
 
       {/* Tab 0: Users */}
@@ -345,6 +347,9 @@ export const AdminPortalPage = () => {
           </Stack>
         </Paper>
       )}
+
+      {/* Tab 4: Faculty Timetable & Duty Management */}
+      {tab === 4 && <AdminTimetableManagement />}
 
       {/* Edit User Modal */}
       <Dialog open={openUserModal} onClose={() => setOpenUserModal(false)} maxWidth="xs" fullWidth>

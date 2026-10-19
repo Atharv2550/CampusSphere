@@ -27,3 +27,14 @@ export const createNotification = async ({ recipient, title, message, type = 'sy
     console.error('[Notification Service Error]', error);
   }
 };
+
+export const notifyUser = async (recipient, { title, message, type = 'system', link = '' }) => {
+  return createNotification({
+    recipient,
+    title,
+    message,
+    type,
+    actionUrl: link,
+  });
+};
+

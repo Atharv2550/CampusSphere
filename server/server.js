@@ -31,6 +31,11 @@ import volunteeringRoutes from './routes/volunteeringRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import timetableRoutes from './routes/timetableRoutes.js';
+import subjectClassRoutes from './routes/subjectClassRoutes.js';
+import dutyRoutes from './routes/dutyRoutes.js';
+import attendanceRoutes from './routes/attendanceRoutes.js';
+import facultySupervisionRoutes from './routes/facultySupervisionRoutes.js';
 
 dotenv.config();
 
@@ -134,6 +139,11 @@ app.use('/api/volunteering', volunteeringRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/timetable', timetableRoutes);
+app.use('/api', subjectClassRoutes);
+app.use('/api/duties', dutyRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/faculty', facultySupervisionRoutes);
 
 // Error Handling
 app.use(notFound);

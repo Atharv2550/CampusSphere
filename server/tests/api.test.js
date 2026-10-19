@@ -119,4 +119,81 @@ describe('CampusSphere Backend API Integration Tests', () => {
     expect(res.body.data.summary.totalUsers).toBeGreaterThan(0);
     expect(res.body.data.summary.totalEvents).toBeGreaterThan(0);
   });
+
+  let facultyToken = '';
+
+  it('Faculty login with valid credentials returns faculty role', async () => {
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'faculty@campussphere.edu',
+      password: 'Faculty@123',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.user.role).toBe('faculty');
+    facultyToken = res.body.data.token;
+  });
+
+  it('Faculty fetches personalized faculty dashboard with schedule metrics', async () => {
+    const res = await request(app)
+      .get('/api/dashboard')
+      .set('Authorization', `Bearer ${facultyToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.weeklyTeachingCount).toBeGreaterThan(0);
+    expect(res.body.data.todaySchedule).toBeDefined();
+    expect(res.body.data.todayDayName).toBeDefined();
+  });
+
+  it('Faculty retrieves their published weekly timetable', async () => {
+    const res = await request(app)
+      .get('/api/timetable/my')
+      .set('Authorization', `Bearer ${facultyToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data.entries)).toBe(true);
+    expect(res.body.data.entries.length).toBeGreaterThan(0);
+  });
+
+  it('Faculty retrieves assigned subjects & classes', async () => {
+    const res = await request(app)
+      .get('/api/subjects/my')
+      .set('Authorization', `Bearer ${facultyToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.count).toBeGreaterThan(0);
+  });
+
+  it('Faculty retrieves assigned duties and substitutions', async () => {
+    const res = await request(app)
+      .get('/api/duties/my')
+      .set('Authorization', `Bearer ${facultyToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
+  });
+
+  it('Faculty retrieves attendance history and logs', async () => {
+    const res = await request(app)
+      .get('/api/attendance/my-history')
+      .set('Authorization', `Bearer ${facultyToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
+  });
+
+  it('Student is restricted from accessing faculty-only endpoints', async () => {
+    const res = await request(app)
+      .get('/api/attendance/my-history')
+      .set('Authorization', `Bearer ${studentToken}`);
+
+    expect(res.status).toBe(403);
+    expect(res.body.success).toBe(false);
+  });
 });
+

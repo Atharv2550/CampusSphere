@@ -45,8 +45,47 @@
 
 ### Phase 6: Seed Data, Tests & Documentation
 - [x] Database seed script (`server/scripts/seed.js`) with 5 demo accounts and rich synthetic campus data
-- [x] Backend automated integration tests (`server/tests/api.test.js`) — 11/11 tests passing
+- [x] Backend automated integration tests (`server/tests/api.test.js`) — 18/18 tests passing
 - [x] Frontend automated tests (`client/src/__tests__/App.test.jsx`) — 2/2 tests passing
-- [x] Frontend production build (`npm run build`) — 1,223 modules transformed, 0 errors
+- [x] Frontend production build (`npm run build`) — 1,232 modules transformed, 0 errors
 - [x] Comprehensive `README.md` with Mermaid ER diagram, role matrix, API reference, and deployment guide
 - [x] `.env.example` configurations
+
+### Phase 7: Faculty Academic Schedule & Duty Management System
+- [x] 5 New Mongoose Models with Indexes and Constraints:
+  - `Subject.js`, `ClassDivision.js`, `TimetableEntry.js`, `DutyAssignment.js`, `LectureAttendance.js`
+- [x] Server-Side Conflict Detection Engine (`server/services/conflictDetectionService.js`):
+  - Faculty double-booking detection
+  - Classroom / laboratory collision detection
+  - Class division overlapping lecture detection
+  - Time range validation
+- [x] Faculty Dedicated Sidebar Navigation (`client/src/layouts/AppLayout.jsx`):
+  - Dashboard, My Timetable, My Subjects & Classes, Lecture & Attendance, Substitution & Duties, Announcements, Events & Activities, Student & Club Supervision, Pending Approvals, Department Reports, Resource Booking, My Profile, Settings
+  - Lost & Found and Marketplace excluded from default faculty navigation
+- [x] Live Faculty Dashboard (`client/src/features/dashboard/FacultyDashboard.jsx`):
+  - Today's scheduled lectures, remaining lectures, next session focus card
+  - Chronological "Today's Schedule" timeline
+  - Live counts for weekly teaching, upcoming duties, pending approvals, supervised events & volunteering
+  - Quick action buttons and schedule conflict reporting dialog
+- [x] Faculty My Timetable (`client/src/features/faculty/FacultyTimetablePage.jsx`):
+  - Daily & weekly schedule views (Monday through Saturday)
+  - Activity type filters, day selector tabs, conflict warning banners, detail modals
+- [x] My Subjects & Classes (`client/src/features/faculty/FacultySubjectsPage.jsx`):
+  - Teaching assignments with weekly hours, rooms, credits
+  - Official enrolled class roster modal with student directory
+- [x] Lecture & Student Attendance (`client/src/features/faculty/FacultyAttendancePage.jsx`):
+  - Class selector, topic input, live attendance rate calculation
+  - Student roll call table with Present / Late / Absent toggles
+  - Duplicate attendance prevention and historical lecture logs
+- [x] Substitution & Duties (`client/src/features/faculty/FacultyDutiesPage.jsx`):
+  - Exam invigilations, substitutions, and committee meetings
+  - Status updates (Acknowledge, Mark Completed)
+- [x] Student & Club Supervision (`client/src/features/faculty/FacultySupervisionPage.jsx`):
+  - Supervised clubs, events, and community service drives with verified hours
+- [x] Pending Approvals Portal (`client/src/features/faculty/FacultyApprovalsPage.jsx`):
+  - Volunteer hour verification and departmental event proposal authorization
+- [x] Administrator Timetable Management (`client/src/features/admin/AdminTimetableManagement.jsx`):
+  - Recurring timetable scheduler with pre-publish conflict checking
+  - Duty and substitution assigner with automated faculty notifications
+- [x] Updated seed script and verified 18/18 integration tests passing!
+

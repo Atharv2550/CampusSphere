@@ -40,6 +40,13 @@ import {
   Logout as LogoutIcon,
   Lightbulb as LogoIcon,
   AssignmentTurnedIn as ReviewIcon,
+  CalendarMonth as TimetableIcon,
+  Class as SubjectsIcon,
+  FactCheck as AttendanceIcon,
+  SwapHoriz as DutiesIcon,
+  SupervisorAccount as SupervisionIcon,
+  PendingActions as ApprovalsIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 
 import { useAuth } from '../context/AuthContext';
@@ -86,6 +93,26 @@ export const AppLayout = () => {
     { text: 'Resource Booking', path: '/bookings', icon: <ResourceIcon /> },
     { text: 'Volunteering', path: '/volunteering', icon: <VolunteeringIcon /> },
   ];
+
+  // Dedicated Faculty role navigation
+  const facultyNavItems = [
+    { text: 'Dashboard', path: '/dashboard', icon: <DashboardIcon /> },
+    { text: 'My Timetable', path: '/faculty/timetable', icon: <TimetableIcon /> },
+    { text: 'My Subjects & Classes', path: '/faculty/subjects', icon: <SubjectsIcon /> },
+    { text: 'Lecture & Attendance', path: '/faculty/attendance', icon: <AttendanceIcon /> },
+    { text: 'Substitution & Duties', path: '/faculty/duties', icon: <DutiesIcon /> },
+    { text: 'Announcements', path: '/announcements', icon: <AnnouncementIcon /> },
+    { text: 'Events & Activities', path: '/events', icon: <EventIcon /> },
+    { text: 'Student & Club Supervision', path: '/faculty/supervision', icon: <SupervisionIcon /> },
+    { text: 'Pending Approvals', path: '/faculty/approvals', icon: <ApprovalsIcon /> },
+    { text: 'Department Reports', path: '/analytics', icon: <AnalyticsIcon /> },
+    { text: 'Resource Booking', path: '/bookings', icon: <ResourceIcon /> },
+    { text: 'My Profile', path: '/profile', icon: <ProfileIcon /> },
+    { text: 'Settings', path: '/settings', icon: <SettingsIcon /> },
+  ];
+
+  const displayedNavItems = user?.role === 'faculty' ? facultyNavItems : navItems;
+  const navSectionLabel = user?.role === 'faculty' ? 'FACULTY ACADEMIC PORTAL' : 'CAMPUS SERVICES';
 
   // Role-specific items
   const adminItems = [
@@ -160,11 +187,11 @@ export const AppLayout = () => {
       {/* Main Navigation List */}
       <Box sx={{ flexGrow: 1, overflowY: 'auto', px: 1.5, py: 1 }}>
         <Typography variant="caption" sx={{ px: 1.5, py: 0.5, fontWeight: 700, color: '#94a3b8', display: 'block' }}>
-          CAMPUS SERVICES
+          {navSectionLabel}
         </Typography>
         <List dense>
-          {navItems.map((item) => {
-            const active = location.pathname.startsWith(item.path);
+          {displayedNavItems.map((item) => {
+            const active = item.path === '/dashboard' ? location.pathname === '/dashboard' : location.pathname.startsWith(item.path);
             return (
               <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
                 <ListItemButton

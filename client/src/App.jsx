@@ -24,8 +24,17 @@ import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage';
 import { AccessDeniedPage } from './pages/AccessDeniedPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
+import { useAuth } from './context/AuthContext';
+
 // Authenticated Pages
 import { StudentDashboard } from './features/dashboard/StudentDashboard';
+import { FacultyDashboard } from './features/dashboard/FacultyDashboard';
+import { FacultyTimetablePage } from './features/faculty/FacultyTimetablePage';
+import { FacultySubjectsPage } from './features/faculty/FacultySubjectsPage';
+import { FacultyAttendancePage } from './features/faculty/FacultyAttendancePage';
+import { FacultyDutiesPage } from './features/faculty/FacultyDutiesPage';
+import { FacultySupervisionPage } from './features/faculty/FacultySupervisionPage';
+import { FacultyApprovalsPage } from './features/faculty/FacultyApprovalsPage';
 import { EventsPage } from './features/events/EventsPage';
 import { EventDetailPage } from './features/events/EventDetailPage';
 import { LostFoundPage } from './features/lostFound/LostFoundPage';
@@ -43,6 +52,14 @@ import { VolunteeringRecordsPage } from './features/volunteering/VolunteeringRec
 import { AnalyticsPage } from './features/analytics/AnalyticsPage';
 import { AdminPortalPage } from './features/admin/AdminPortalPage';
 import { ProfilePage } from './features/profile/ProfilePage';
+
+function DashboardRouter() {
+  const { user } = useAuth();
+  if (user?.role === 'faculty') {
+    return <FacultyDashboard />;
+  }
+  return <StudentDashboard />;
+}
 
 export function App() {
   return (
@@ -67,7 +84,7 @@ export function App() {
                 {/* Authenticated Application Routes with AppLayout */}
                 <Route element={<ProtectedRoute />}>
                   <Route element={<AppLayout />}>
-                    <Route path="/dashboard" element={<StudentDashboard />} />
+                    <Route path="/dashboard" element={<DashboardRouter />} />
                     <Route path="/events" element={<EventsPage />} />
                     <Route path="/events/:id" element={<EventDetailPage />} />
                     <Route path="/lost-found" element={<LostFoundPage />} />
@@ -83,6 +100,17 @@ export function App() {
                     <Route path="/volunteering" element={<VolunteeringPage />} />
                     <Route path="/volunteering/my-records" element={<VolunteeringRecordsPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/settings" element={<ProfilePage />} />
+
+                    {/* Dedicated Faculty Academic Routes */}
+                    <Route element={<ProtectedRoute allowedRoles={['faculty', 'admin']} />}>
+                      <Route path="/faculty/timetable" element={<FacultyTimetablePage />} />
+                      <Route path="/faculty/subjects" element={<FacultySubjectsPage />} />
+                      <Route path="/faculty/attendance" element={<FacultyAttendancePage />} />
+                      <Route path="/faculty/duties" element={<FacultyDutiesPage />} />
+                      <Route path="/faculty/supervision" element={<FacultySupervisionPage />} />
+                      <Route path="/faculty/approvals" element={<FacultyApprovalsPage />} />
+                    </Route>
 
                     {/* Staff / Coordinator / Admin Analytics */}
                     <Route

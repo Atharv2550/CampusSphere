@@ -22,6 +22,11 @@ import { ResourceBooking } from '../models/ResourceBooking.js';
 import { VolunteeringActivity } from '../models/VolunteeringActivity.js';
 import { VolunteeringRegistration } from '../models/VolunteeringRegistration.js';
 import { PlatformSetting } from '../models/PlatformSetting.js';
+import { Subject } from '../models/Subject.js';
+import { ClassDivision } from '../models/ClassDivision.js';
+import { TimetableEntry } from '../models/TimetableEntry.js';
+import { DutyAssignment } from '../models/DutyAssignment.js';
+import { LectureAttendance } from '../models/LectureAttendance.js';
 
 dotenv.config();
 
@@ -54,6 +59,11 @@ export const seedDatabase = async () => {
       VolunteeringActivity.deleteMany({}),
       VolunteeringRegistration.deleteMany({}),
       PlatformSetting.deleteMany({}),
+      Subject.deleteMany({}),
+      ClassDivision.deleteMany({}),
+      TimetableEntry.deleteMany({}),
+      DutyAssignment.deleteMany({}),
+      LectureAttendance.deleteMany({}),
     ]);
 
     console.log('[Seed] Collections cleared. Seeding Departments...');
@@ -697,6 +707,230 @@ export const seedDatabase = async () => {
       { key: 'ALLOWED_EMAIL_DOMAIN', value: 'campussphere.edu', description: 'Authorized institutional email domain' },
       { key: 'ENABLE_WAITLISTS', value: true, description: 'Enable automatic event waitlist queue and promotions' },
       { key: 'MAX_ACTIVE_BOOKINGS_PER_USER', value: 3, description: 'Maximum active resource bookings allowed per student' },
+    ]);
+
+    // 13. Academic Schedule System: Subjects
+    console.log('[Seed] Seeding Academic Subjects and Class Divisions...');
+    const student1 = studentAlex;
+    const student2 = studentPriya;
+
+    const subjects = await Subject.insertMany([
+      {
+        name: 'Distributed Systems & Cloud Computing',
+        code: 'CS501',
+        department: cseDept._id,
+        semester: 5,
+        academicYear: '2026-2027',
+        credits: 4,
+        lectureHoursPerWeek: 4,
+        description: 'Consensus protocols, microservices, cloud orchestration, and fault-tolerant architectures.',
+      },
+      {
+        name: 'Advanced Database Management Systems',
+        code: 'CS502',
+        department: cseDept._id,
+        semester: 5,
+        academicYear: '2026-2027',
+        credits: 3,
+        lectureHoursPerWeek: 3,
+        description: 'Query optimization, transaction isolation levels, indexing, and NoSQL storage engines.',
+      },
+      {
+        name: 'Machine Learning & Deep Neural Networks',
+        code: 'CS701',
+        department: cseDept._id,
+        semester: 7,
+        academicYear: '2026-2027',
+        credits: 4,
+        lectureHoursPerWeek: 4,
+        description: 'Supervised/unsupervised algorithms, transformer models, PyTorch, and generative AI models.',
+      },
+      {
+        name: 'Design & Analysis of Algorithms',
+        code: 'CS301',
+        department: cseDept._id,
+        semester: 3,
+        academicYear: '2026-2027',
+        credits: 4,
+        lectureHoursPerWeek: 4,
+        description: 'Divide and conquer, greedy methods, dynamic programming, and NP-completeness.',
+      },
+    ]);
+
+    // 14. Class Divisions
+    const classes = await ClassDivision.insertMany([
+      {
+        name: 'CSE-5A',
+        code: 'CSE-5A',
+        department: cseDept._id,
+        semester: 5,
+        academicYear: '2026-2027',
+        room: 'LH-201',
+        studentCount: 38,
+        students: [student1._id, student2._id],
+      },
+      {
+        name: 'CSE-5B',
+        code: 'CSE-5B',
+        department: cseDept._id,
+        semester: 5,
+        academicYear: '2026-2027',
+        room: 'LH-202',
+        studentCount: 36,
+        students: [student2._id],
+      },
+      {
+        name: 'CSE-7A',
+        code: 'CSE-7A',
+        department: cseDept._id,
+        semester: 7,
+        academicYear: '2026-2027',
+        room: 'Seminar Hall 1',
+        studentCount: 42,
+        students: [student1._id],
+      },
+    ]);
+
+    // 15. Timetable Entries for Prof. Marcus Chen
+    console.log('[Seed] Seeding Recurring Weekly Timetable Entries...');
+    const cs501 = subjects[0];
+    const cs502 = subjects[1];
+    const cs701 = subjects[2];
+    const cse5A = classes[0];
+    const cse5B = classes[1];
+    const cse7A = classes[2];
+
+    const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const nowDay = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
+
+    const timetableData = [
+      // Monday
+      { faculty: facultyUser._id, subject: cs501._id, classDivision: cse5A._id, department: cseDept._id, dayOfWeek: 'Monday', startTime: '09:00', endTime: '10:00', room: 'LH-201', activityType: 'Theory', status: 'Published' },
+      { faculty: facultyUser._id, subject: cs501._id, classDivision: cse5A._id, department: cseDept._id, dayOfWeek: 'Monday', startTime: '11:30', endTime: '13:00', room: 'Lab-3', activityType: 'Laboratory', status: 'Published' },
+      { faculty: facultyUser._id, subject: cs701._id, classDivision: cse7A._id, department: cseDept._id, dayOfWeek: 'Monday', startTime: '14:30', endTime: '15:30', room: 'Seminar Hall 1', activityType: 'Theory', status: 'Published' },
+
+      // Tuesday
+      { faculty: facultyUser._id, subject: cs502._id, classDivision: cse5B._id, department: cseDept._id, dayOfWeek: 'Tuesday', startTime: '10:00', endTime: '11:00', room: 'LH-202', activityType: 'Theory', status: 'Published' },
+      { faculty: facultyUser._id, subject: cs501._id, classDivision: cse5A._id, department: cseDept._id, dayOfWeek: 'Tuesday', startTime: '11:30', endTime: '12:30', room: 'LH-201', activityType: 'Theory', status: 'Published' },
+      { faculty: facultyUser._id, subject: cs502._id, classDivision: cse5B._id, department: cseDept._id, dayOfWeek: 'Tuesday', startTime: '14:00', endTime: '15:00', room: 'LH-202', activityType: 'Tutorial', status: 'Published' },
+
+      // Wednesday
+      { faculty: facultyUser._id, subject: cs701._id, classDivision: cse7A._id, department: cseDept._id, dayOfWeek: 'Wednesday', startTime: '09:00', endTime: '10:00', room: 'Seminar Hall 1', activityType: 'Theory', status: 'Published' },
+      { faculty: facultyUser._id, subject: cs501._id, classDivision: cse5A._id, department: cseDept._id, dayOfWeek: 'Wednesday', startTime: '10:30', endTime: '11:30', room: 'LH-201', activityType: 'Theory', status: 'Published' },
+      { faculty: facultyUser._id, subject: cs701._id, classDivision: cse7A._id, department: cseDept._id, dayOfWeek: 'Wednesday', startTime: '14:00', endTime: '16:00', room: 'AI Lab', activityType: 'Practical', status: 'Published' },
+
+      // Thursday
+      { faculty: facultyUser._id, subject: cs502._id, classDivision: cse5B._id, department: cseDept._id, dayOfWeek: 'Thursday', startTime: '09:30', endTime: '10:30', room: 'LH-202', activityType: 'Theory', status: 'Published' },
+      { faculty: facultyUser._id, subject: cs501._id, classDivision: cse5A._id, department: cseDept._id, dayOfWeek: 'Thursday', startTime: '11:00', endTime: '12:00', room: 'LH-201', activityType: 'Theory', status: 'Published' },
+
+      // Friday
+      { faculty: facultyUser._id, subject: cs701._id, classDivision: cse7A._id, department: cseDept._id, dayOfWeek: 'Friday', startTime: '10:00', endTime: '11:00', room: 'Seminar Hall 1', activityType: 'Theory', status: 'Published' },
+      { faculty: facultyUser._id, subject: cs502._id, classDivision: cse5B._id, department: cseDept._id, dayOfWeek: 'Friday', startTime: '11:30', endTime: '13:00', room: 'Database Lab', activityType: 'Laboratory', status: 'Published' },
+
+      // Saturday
+      { faculty: facultyUser._id, subject: cs501._id, classDivision: cse5A._id, department: cseDept._id, dayOfWeek: 'Saturday', startTime: '09:30', endTime: '11:00', room: 'LH-201', activityType: 'Tutorial', status: 'Published' },
+    ];
+
+    // Ensure there is always a session scheduled for "today" regardless of the day the seed is executed
+    const hasToday = timetableData.some((t) => t.dayOfWeek === nowDay);
+    if (!hasToday && nowDay !== 'Sunday') {
+      timetableData.push({
+        faculty: facultyUser._id,
+        subject: cs501._id,
+        classDivision: cse5A._id,
+        department: cseDept._id,
+        dayOfWeek: nowDay,
+        startTime: '10:00',
+        endTime: '11:00',
+        room: 'LH-201',
+        activityType: 'Theory',
+        status: 'Published',
+      });
+    }
+
+    const timetableEntries = await TimetableEntry.insertMany(timetableData);
+
+    // 16. Duty & Substitution Assignments
+    console.log('[Seed] Seeding Duty & Substitution Assignments...');
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dayAfter = new Date(today);
+    dayAfter.setDate(dayAfter.getDate() + 3);
+
+    await DutyAssignment.insertMany([
+      {
+        faculty: facultyUser._id,
+        type: 'Examination Invigilation',
+        title: 'Mid-Term Exam Duty: Data Structures (CSE-3A)',
+        subject: subjects[3]._id,
+        classDivision: cse5A._id,
+        date: today,
+        startTime: '14:00',
+        endTime: '16:00',
+        room: 'Exam Hall 101',
+        reason: 'Mid-term centralized university invigilation schedule',
+        status: 'Assigned',
+        assignedBy: adminUser._id,
+        notes: 'Please collect question booklets 20 mins prior from exam cell.',
+      },
+      {
+        faculty: facultyUser._id,
+        originalFaculty: adminUser._id,
+        type: 'Substitution',
+        title: 'Lecture Substitution for Prof. Turing - Algorithms (CS301)',
+        subject: subjects[3]._id,
+        classDivision: cse5A._id,
+        date: tomorrow,
+        startTime: '11:00',
+        endTime: '12:00',
+        room: 'LH-201',
+        reason: 'Regular instructor attending IEEE Global Conference on Distributed Computing',
+        status: 'Acknowledged',
+        assignedBy: adminUser._id,
+        notes: 'Topic: Dynamic Programming - Longest Common Subsequence.',
+      },
+      {
+        faculty: facultyUser._id,
+        type: 'Department Meeting',
+        title: 'CSE Board of Studies Curriculum & Accreditation Review',
+        date: dayAfter,
+        startTime: '16:00',
+        endTime: '17:30',
+        room: 'Conference Room A',
+        reason: 'Periodic departmental academic audit and lab equipment budget allocation',
+        status: 'Assigned',
+        assignedBy: adminUser._id,
+      },
+    ]);
+
+    // 17. Lecture Attendance Records
+    console.log('[Seed] Seeding Historical Lecture Attendance Records...');
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - 2);
+
+    await LectureAttendance.insertMany([
+      {
+        timetableEntry: timetableEntries[0]._id,
+        faculty: facultyUser._id,
+        subject: cs501._id,
+        classDivision: cse5A._id,
+        date: pastDate,
+        startTime: '09:00',
+        endTime: '10:00',
+        topic: 'Raft Consensus Algorithm & Leader Election Mechanism',
+        records: [
+          { student: student1._id, status: 'Present', remarks: 'Active in Q&A' },
+          { student: student2._id, status: 'Present', remarks: '' },
+        ],
+        summary: {
+          totalStudents: 2,
+          presentCount: 2,
+          absentCount: 0,
+          lateCount: 0,
+          attendanceRate: 100,
+        },
+      },
     ]);
 
     console.log('[Seed] Seeding completed successfully!');

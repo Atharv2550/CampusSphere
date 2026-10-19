@@ -14,7 +14,7 @@ CampusSphere is a centralized digital ecosystem engineered for higher education 
 | :--- | :--- |
 | **Frontend** | React 18, Vite, Material UI (MUI v5/v6), Emotion, React Router v6, Axios, Recharts, Socket.IO Client |
 | **Backend** | Node.js, Express.js (ES Modules), Socket.IO, Multer, Helmet, Morgan, Express Rate Limit |
-| **Database** | MongoDB with Mongoose ODM (21 normalized schemas with compound indexes & validation) |
+| **Database** | MongoDB with Mongoose ODM (26 normalized schemas with compound indexes & validation) |
 | **Authentication** | JWT (JSON Web Tokens), bcryptjs password hashing, server-enforced RBAC |
 | **Testing** | Vitest, Supertest, React Testing Library, JSDOM |
 | **Deployment** | Vercel (Frontend SPA), Render (Backend Node API), MongoDB Atlas |
@@ -37,11 +37,23 @@ erDiagram
     User ||--o{ VolunteeringRegistration : participates
     User ||--o{ Notification : receives
     User ||--o{ AuditLog : triggers
+    User ||--o{ TimetableEntry : teaches
+    User ||--o{ DutyAssignment : assigned_to
+    User ||--o{ LectureAttendance : records_rollcall
 
     Department ||--o{ User : enrolls
     Department ||--o{ Event : hosts
     Department ||--o{ Club : oversees
     Department ||--o{ CampusResource : owns
+    Department ||--o{ Subject : offers
+    Department ||--o{ ClassDivision : establishes
+
+    Subject ||--o{ TimetableEntry : scheduled_for
+    Subject ||--o{ LectureAttendance : attended_in
+
+    ClassDivision ||--o{ TimetableEntry : attends
+    ClassDivision ||--o{ LectureAttendance : recorded_for
+    ClassDivision ||--o{ User : contains_students
 
     Club ||--o{ Event : organizes
     Club ||--o{ ClubMembership : contains
@@ -68,10 +80,10 @@ CampusSphere enforces strict, server-side Role-Based Access Control (RBAC). Role
 | Role | Permissions & Scope |
 | :--- | :--- |
 | **Student** | Discover and register for events (with atomic waitlists), report lost/found items, file ownership claims, list marketplace goods, request exchanges, book tutoring, join clubs, reserve permitted resources, track verified volunteering hours. |
-| **Faculty** | Publish official academic announcements, organize campus events, supervise volunteering drives, verify community service hours, view department metrics. |
+| **Faculty** | View personalized weekly timetable and chronological daily schedule, manage subjects and view student rosters, record lecture roll-call attendance with duplicate prevention, manage substitution and exam invigilation duties, supervise clubs and community service drives, approve volunteer hours, publish official announcements. |
 | **Club Coordinator** | Manage assigned club profiles, review membership applications, assign committee roles (e.g. PR Lead, Treasurer), host club hackathons/events. |
 | **Resource Manager** | Manage campus halls, labs, and equipment. Configure operating hours, inspect conflict detection, approve or reject booking reservations. |
-| **Campus Administrator** | Full platform governance, user activation/suspension, content moderation for flagged posts, compliance audit log inspection, campus-wide analytics. |
+| **Campus Administrator** | Full platform governance, user activation/suspension, content moderation for flagged posts, compliance audit log inspection, timetable scheduling with real-time conflict detection, duty assignment, campus-wide analytics. |
 
 ---
 
@@ -119,6 +131,14 @@ CampusSphere enforces strict, server-side Role-Based Access Control (RBAC). Role
 - Recharts visualizations (Bar, Pie, Line) and one-click CSV report export.
 - Administrative content moderation queue and security audit trail.
 
+### 10. Faculty Academic Schedule & Duty Management (`/faculty/*`, `/timetable`)
+- **Interactive Timetable**: 6-day weekly grid and chronological daily view with real-time schedule conflict flags.
+- **Subjects & Classes**: Subject cards, weekly lecture/lab hour breakdowns, assigned rooms, and enrolled student roster drill-downs.
+- **Lecture Attendance Roll-Call**: Student roll-call (Present / Late / Absent), topic logging, compound unique validation preventing duplicate entries for the same slot, and full attendance history.
+- **Substitution & Duty Management**: Workflow for exam invigilations, proxy lectures, and committee meetings with status tracking (Pending, Acknowledged, Completed).
+- **Supervision & Approvals**: Oversight of supervised student clubs, sponsored events, and direct one-click verification of student community service hours.
+- **Administrative Timetable Management**: Real-time server-side conflict detection engine guarding against faculty double-booking, room/lab collisions, and student cohort overlaps.
+
 ---
 
 ## 4. Demo Accounts for Immediate Testing
@@ -129,8 +149,8 @@ The database seeding script pre-populates 5 role-specific demonstration accounts
 | :--- | :--- | :--- | :--- |
 | **Student** | `student@campussphere.edu` | `Student@123` | Event registration, PIN check-in, Marketplace listing, Tutoring request, Volunteering records |
 | **Student 2** | `student2@campussphere.edu` | `Student@123` | Peer counterparty for marketplace offers, peer tutoring sessions |
-| **Campus Admin** | `admin@campussphere.edu` | `Admin@123` | User suspension/activation, content moderation, audit logs, campus analytics |
-| **Faculty** | `faculty@campussphere.edu` | `Faculty@123` | Create announcements, supervise volunteering, verify student hours |
+| **Campus Admin** | `admin@campussphere.edu` | `Admin@123` | Timetable management & conflict engine, user suspension/activation, content moderation, audit logs |
+| **Faculty** | `faculty@campussphere.edu` | `Faculty@123` | Weekly timetable, lecture roll-call attendance, exam & substitution duties, student supervision, volunteering approvals |
 | **Club Coordinator** | `coordinator@campussphere.edu` | `Coordinator@123` | Manage ACM Student Chapter, review memberships, assign committee roles |
 | **Resource Manager** | `resourcemanager@campussphere.edu` | `Manager@123` | Review room and lab reservations, prevent schedule conflicts |
 
@@ -246,6 +266,19 @@ All endpoints are hosted under `/api` and return standardized responses:
 - `GET /api/analytics/export-csv` — Export events analytics as CSV
 - `GET /api/admin/users` — Administrator user directory
 - `PATCH /api/admin/users/:id` — Suspend or reactivate user accounts
+- `GET /api/timetable/my` — Fetch faculty weekly academic schedule
+- `POST /api/timetable` — Administrator creates timetable slot with conflict check
+- `POST /api/timetable/check-conflict` — Real-time server-side schedule conflict detection
+- `GET /api/subjects` — List academic subjects and weekly hours
+- `GET /api/classes` — List class divisions and cohorts
+- `GET /api/classes/:id/students` — Retrieve enrolled student roster for a class
+- `GET /api/duties/my` — Fetch faculty assigned exam invigilations, substitutions & duties
+- `PATCH /api/duties/:id/status` — Acknowledge or complete assigned duty
+- `POST /api/attendance` — Submit lecture attendance roll-call with duplicate guard
+- `GET /api/attendance/history` — Faculty lecture attendance logs and statistics
+- `GET /api/faculty/supervision` — Get faculty supervised clubs, events & volunteering
+- `GET /api/faculty/pending-approvals` — Pending volunteer hours & event proposal approvals
+- `POST /api/faculty/report-conflict` — Faculty schedule conflict notification alert
 
 ---
 
