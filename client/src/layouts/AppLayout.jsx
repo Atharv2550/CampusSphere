@@ -47,6 +47,7 @@ import {
   SupervisorAccount as SupervisionIcon,
   PendingActions as ApprovalsIcon,
   Settings as SettingsIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 
 import { useAuth } from '../context/AuthContext';
@@ -100,6 +101,7 @@ export const AppLayout = () => {
     { text: 'My Timetable', path: '/faculty/timetable', icon: <TimetableIcon /> },
     { text: 'My Subjects & Classes', path: '/faculty/subjects', icon: <SubjectsIcon /> },
     { text: 'Lecture & Attendance', path: '/faculty/attendance', icon: <AttendanceIcon /> },
+    { text: 'Attendance History', path: '/faculty/attendance-history', icon: <HistoryIcon /> },
     { text: 'Substitution & Duties', path: '/faculty/duties', icon: <DutiesIcon /> },
     { text: 'Announcements', path: '/announcements', icon: <AnnouncementIcon /> },
     { text: 'Events & Activities', path: '/events', icon: <EventIcon /> },

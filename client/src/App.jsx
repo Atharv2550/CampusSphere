@@ -32,6 +32,7 @@ import { FacultyDashboard } from './features/dashboard/FacultyDashboard';
 import { FacultyTimetablePage } from './features/faculty/FacultyTimetablePage';
 import { FacultySubjectsPage } from './features/faculty/FacultySubjectsPage';
 import { FacultyAttendancePage } from './features/faculty/FacultyAttendancePage';
+import { FacultyAttendanceHistoryPage } from './features/faculty/FacultyAttendanceHistoryPage';
 import { FacultyDutiesPage } from './features/faculty/FacultyDutiesPage';
 import { FacultySupervisionPage } from './features/faculty/FacultySupervisionPage';
 import { FacultyApprovalsPage } from './features/faculty/FacultyApprovalsPage';
@@ -107,6 +108,7 @@ export function App() {
                       <Route path="/faculty/timetable" element={<FacultyTimetablePage />} />
                       <Route path="/faculty/subjects" element={<FacultySubjectsPage />} />
                       <Route path="/faculty/attendance" element={<FacultyAttendancePage />} />
+                      <Route path="/faculty/attendance-history" element={<FacultyAttendanceHistoryPage />} />
                       <Route path="/faculty/duties" element={<FacultyDutiesPage />} />
                       <Route path="/faculty/supervision" element={<FacultySupervisionPage />} />
                       <Route path="/faculty/approvals" element={<FacultyApprovalsPage />} />

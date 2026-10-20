@@ -89,3 +89,39 @@
   - Duty and substitution assigner with automated faculty notifications
 - [x] Updated seed script and verified 18/18 integration tests passing!
 
+### Phase 8: Faculty Attendance Bug Fixes, Reporting & Audit System
+- [x] **Diagnosed & Fixed HTTP 422 Unprocessable Entity**:
+  - Identified `AuditLog.create` schema validation error where `targetType` is a required field but was passed as `entity`. Corrected in `recordAttendance` and `updateAttendanceSession`.
+  - Added strict student status enum validation (`Present`, `Absent`, `Late`) and student ID validation.
+- [x] **Diagnosed & Fixed HTTP 409 Conflict**:
+  - Resolved duplicate slot submission blocking by introducing a pre-flight slot check endpoint (`GET /api/attendance/check-session`).
+  - Added seamless UI banner in `FacultyAttendancePage.jsx` when slot is already recorded with 1-click "Load Saved Records" and "Update / Correct" modes.
+- [x] **Enhanced Attendance Data Model (`server/models/LectureAttendance.js`)**:
+  - `records`: Subdocuments with `student`, `status`, `remarks`, `lastModifiedBy`, and `updatedAt`.
+  - `editHistory`: Comprehensive audit trail recording `modifiedBy`, `modifiedAt`, `reason`, and `changes` array (`previousStatus` -> `newStatus`).
+  - `academicYear`, `semester`, and `sessionStatus` (`Submitted`, `Corrected`, `Cancelled`).
+  - Compound indexes on `{ faculty, subject, classDivision, date, startTime }` and `{ 'records.student': 1 }`.
+- [x] **Complete Suite of Backend Attendance Endpoints (`server/controllers/lectureAttendanceController.js`)**:
+  - `POST /api/attendance`: Session submission with deduplication, validation, and late policy weighting.
+  - `GET /api/attendance/check-session`: Pre-flight detection of recorded sessions.
+  - `GET /api/attendance/sessions`: Paginated & filtered session list (subject, class, date range, search, status).
+  - `GET /api/attendance/sessions/:id`: Full session details with student records and edit audit history.
+  - `PATCH /api/attendance/sessions/:id`: Authorized faculty correction with status change tracking and audit log.
+  - `GET /api/attendance/student/:studentId`: Individual student attendance dossier with `(Attended / Total) × 100` formula (Late = 0.5 credit), date-wise history, and missed lectures.
+  - `GET /api/attendance/reports/subject`, `class`, `daily`, `summary`: Multi-dimensional aggregate reporting.
+  - `GET /api/attendance/missing`: Timetable reconciliation identifying unrecorded expected lectures.
+  - `GET /api/attendance/export-csv`: CSV export generation with standard MIME headers.
+- [x] **New Page: Faculty Attendance History & Reports (`client/src/features/faculty/FacultyAttendanceHistoryPage.jsx`)**:
+  - Tab 1: Session-Level History Table with multi-parameter filter bar, responsive data table, detail drawer, correction dialog, CSV export, and print view.
+  - Tab 2: Individual Student Attendance Report with class & student selectors, overall KPI cards, subject breakdown, and missed lectures list.
+  - Tab 3: Subject & Class Cohort Analytics with lecture logs and average attendance percentages.
+  - Tab 4: Missing / Unrecorded Timetable Attendance detection with direct "Record Now" redirection.
+- [x] **Sidebar Navigation & Routing**:
+  - Added "Attendance History" below "Lecture & Attendance" in `client/src/layouts/AppLayout.jsx`.
+  - Mounted `/faculty/attendance-history` under protected faculty routes in `client/src/App.jsx`.
+- [x] **Quality Assurance**:
+  - All 36 server integration tests passing (`npm --prefix server test`).
+  - All client tests passing (`npm --prefix client test`).
+  - Client production build succeeded (`npm --prefix client run build`) with zero linting or JSX errors.
+
+

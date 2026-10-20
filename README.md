@@ -131,10 +131,17 @@ CampusSphere enforces strict, server-side Role-Based Access Control (RBAC). Role
 - Recharts visualizations (Bar, Pie, Line) and one-click CSV report export.
 - Administrative content moderation queue and security audit trail.
 
-### 10. Faculty Academic Schedule & Duty Management (`/faculty/*`, `/timetable`)
+### 10. Faculty Academic Schedule, Attendance & Reporting (`/faculty/*`, `/timetable`)
 - **Interactive Timetable**: 6-day weekly grid and chronological daily view with real-time schedule conflict flags.
 - **Subjects & Classes**: Subject cards, weekly lecture/lab hour breakdowns, assigned rooms, and enrolled student roster drill-downs.
-- **Lecture Attendance Roll-Call**: Student roll-call (Present / Late / Absent), topic logging, compound unique validation preventing duplicate entries for the same slot, and full attendance history.
+- **Lecture Attendance Roll-Call (`/faculty/attendance`)**: Student roll-call (Present / Late / Absent), topic logging, pre-flight existing session detection, anti-duplicate validation, and inline status correction.
+- **Complete Attendance History & Reporting (`/faculty/attendance-history`)**:
+  - **Session-Level History**: Filter by subject, class cohort, date range, topic search, and submission status with server-side pagination.
+  - **Individual Student Reports**: Student attendance percentage `(Attended / Total) × 100` with configurable institutional Late policies (0.5 credit standard), chronological date-wise history, and missed lecture logs.
+  - **Subject & Class Analytics**: Aggregated lecture counts, average attendance rates, and enrollment metrics.
+  - **Missing / Unrecorded Attendance**: Compares weekly timetable schedules with submitted records to flag unrecorded past sessions.
+  - **Controlled Correction & Audit Trail**: Authorized correction of submitted sessions with previous/new status tracking and permanent audit logging (`editHistory`).
+  - **Data Export & Print**: Printable reports and RFC 4180 compliant CSV exports.
 - **Substitution & Duty Management**: Workflow for exam invigilations, proxy lectures, and committee meetings with status tracking (Pending, Acknowledged, Completed).
 - **Supervision & Approvals**: Oversight of supervised student clubs, sponsored events, and direct one-click verification of student community service hours.
 - **Administrative Timetable Management**: Real-time server-side conflict detection engine guarding against faculty double-booking, room/lab collisions, and student cohort overlaps.
@@ -274,8 +281,18 @@ All endpoints are hosted under `/api` and return standardized responses:
 - `GET /api/classes/:id/students` — Retrieve enrolled student roster for a class
 - `GET /api/duties/my` — Fetch faculty assigned exam invigilations, substitutions & duties
 - `PATCH /api/duties/:id/status` — Acknowledge or complete assigned duty
-- `POST /api/attendance` — Submit lecture attendance roll-call with duplicate guard
-- `GET /api/attendance/history` — Faculty lecture attendance logs and statistics
+- `POST /api/attendance` — Submit lecture attendance session (with validation and duplicate check)
+- `GET /api/attendance/check-session` — Check if attendance was already recorded for date/slot
+- `GET /api/attendance/sessions` — Paginated and filtered attendance session history
+- `GET /api/attendance/sessions/:id` — Detailed session roll-call records and audit trail
+- `PATCH /api/attendance/sessions/:id` — Authorized attendance correction with audit logging
+- `GET /api/attendance/student/:studentId` — Individual student attendance report & late credit calculations
+- `GET /api/attendance/reports/subject` — Subject-wise aggregate attendance metrics
+- `GET /api/attendance/reports/class` — Class division cohort attendance analytics
+- `GET /api/attendance/reports/daily` — Daily lecture attendance reports
+- `GET /api/attendance/reports/summary` — Aggregate attendance KPIs for faculty
+- `GET /api/attendance/missing` — Unrecorded timetable lectures audit
+- `GET /api/attendance/export-csv` — Export attendance session report as CSV
 - `GET /api/faculty/supervision` — Get faculty supervised clubs, events & volunteering
 - `GET /api/faculty/pending-approvals` — Pending volunteer hours & event proposal approvals
 - `POST /api/faculty/report-conflict` — Faculty schedule conflict notification alert
