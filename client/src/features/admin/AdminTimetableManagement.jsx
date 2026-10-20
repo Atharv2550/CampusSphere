@@ -41,7 +41,7 @@ import api from '../../services/api';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-export const AdminTimetableManagement = () => {
+export const AdminTimetableManagement = ({ initialFacultyId = null, autoOpenTimetable = false }) => {
   const { showSuccess, showError } = useToast();
 
   const [loading, setLoading] = useState(true);
@@ -51,11 +51,12 @@ export const AdminTimetableManagement = () => {
   const [subjects, setSubjects] = useState([]);
   const [classes, setClasses] = useState([]);
   const [subTab, setSubTab] = useState(0); // 0 = Timetable Entries, 1 = Duties & Substitutions
+  const [facultyFilter, setFacultyFilter] = useState(initialFacultyId || 'all');
 
   // Timetable Dialog
   const [openTimetableModal, setOpenTimetableModal] = useState(false);
   const [timetableForm, setTimetableForm] = useState({
-    faculty: '',
+    faculty: initialFacultyId || '',
     subject: '',
     classDivision: '',
     department: '',
@@ -74,7 +75,7 @@ export const AdminTimetableManagement = () => {
   // Duty Dialog
   const [openDutyModal, setOpenDutyModal] = useState(false);
   const [dutyForm, setDutyForm] = useState({
-    faculty: '',
+    faculty: initialFacultyId || '',
     originalFaculty: '',
     type: 'Examination Invigilation',
     title: '',
@@ -114,12 +115,16 @@ export const AdminTimetableManagement = () => {
       setClasses(classesRes.data.data || []);
 
       if (faculties.length > 0) {
+        const targetFac = initialFacultyId
+          ? (faculties.find((f) => f._id === initialFacultyId) || faculties[0])
+          : faculties[0];
+
         setTimetableForm((prev) => ({
           ...prev,
-          faculty: faculties[0]._id,
-          department: faculties[0].department?._id || faculties[0].department || '',
+          faculty: targetFac._id,
+          department: targetFac.department?._id || targetFac.department || '',
         }));
-        setDutyForm((prev) => ({ ...prev, faculty: faculties[0]._id }));
+        setDutyForm((prev) => ({ ...prev, faculty: targetFac._id }));
       }
       if (subjectsRes.data.data?.length > 0) {
         setTimetableForm((prev) => ({ ...prev, subject: subjectsRes.data.data[0]._id }));
@@ -138,6 +143,26 @@ export const AdminTimetableManagement = () => {
   useEffect(() => {
     loadAll();
   }, []);
+
+  useEffect(() => {
+    if (initialFacultyId) {
+      setFacultyFilter(initialFacultyId);
+      if (facultyUsers.length > 0) {
+        const targetFac = facultyUsers.find((f) => f._id === initialFacultyId);
+        if (targetFac) {
+          setTimetableForm((prev) => ({
+            ...prev,
+            faculty: targetFac._id,
+            department: targetFac.department?._id || targetFac.department || prev.department,
+          }));
+          setDutyForm((prev) => ({ ...prev, faculty: targetFac._id }));
+        }
+      }
+      if (autoOpenTimetable) {
+        setOpenTimetableModal(true);
+      }
+    }
+  }, [initialFacultyId, facultyUsers, autoOpenTimetable]);
 
   const handleCheckConflict = async () => {
     try {
@@ -328,22 +353,57 @@ export const AdminTimetableManagement = () => {
 
       {/* Tab 0: Timetable Entries Table */}
       {subTab === 0 && (
-        <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 3 }}>
-          <Table size="small">
-            <TableHead sx={{ bgcolor: '#f8fafc' }}>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 800 }}>Day & Time</TableCell>
-                <TableCell sx={{ fontWeight: 800 }}>Faculty Member</TableCell>
-                <TableCell sx={{ fontWeight: 800 }}>Subject</TableCell>
-                <TableCell sx={{ fontWeight: 800 }}>Class Cohort</TableCell>
-                <TableCell sx={{ fontWeight: 800 }}>Room / Lab</TableCell>
-                <TableCell sx={{ fontWeight: 800 }}>Type</TableCell>
-                <TableCell sx={{ fontWeight: 800 }}>Status</TableCell>
-                <TableCell sx={{ fontWeight: 800, textAlign: 'right' }}>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {entries.map((item) => (
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <TextField
+                select
+                size="small"
+                label="Filter by Faculty Member"
+                value={facultyFilter}
+                onChange={(e) => setFacultyFilter(e.target.value)}
+                sx={{ minWidth: 280 }}
+              >
+                <MenuItem value="all">All Faculty Members ({entries.length} slots)</MenuItem>
+                {facultyUsers.map((f) => (
+                  <MenuItem key={f._id} value={f._id}>
+                    Prof. {f.fullName} {f.employeeId ? `(${f.employeeId})` : ''}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              {facultyFilter !== 'all' && (
+                <Button
+                  size="small"
+                  variant="text"
+                  onClick={() => setFacultyFilter('all')}
+                  sx={{ textTransform: 'none', color: '#64748b' }}
+                >
+                  Clear Filter (Show All)
+                </Button>
+              )}
+            </Box>
+          </Box>
+
+          <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 3 }}>
+            <Table size="small">
+              <TableHead sx={{ bgcolor: '#f8fafc' }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 800 }}>Day & Time</TableCell>
+                  <TableCell sx={{ fontWeight: 800 }}>Faculty Member</TableCell>
+                  <TableCell sx={{ fontWeight: 800 }}>Subject</TableCell>
+                  <TableCell sx={{ fontWeight: 800 }}>Class Cohort</TableCell>
+                  <TableCell sx={{ fontWeight: 800 }}>Room / Lab</TableCell>
+                  <TableCell sx={{ fontWeight: 800 }}>Type</TableCell>
+                  <TableCell sx={{ fontWeight: 800 }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 800, textAlign: 'right' }}>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {(facultyFilter === 'all'
+                  ? entries
+                  : entries.filter((item) => (item.faculty?._id || item.faculty) === facultyFilter)
+                ).map((item) => (
                 <TableRow key={item._id} hover>
                   <TableCell>
                     <Typography variant="body2" sx={{ fontWeight: 700, color: '#0f172a' }}>
@@ -382,6 +442,7 @@ export const AdminTimetableManagement = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        </Box>
       )}
 
       {/* Tab 1: Duties & Substitutions Table */}
@@ -465,7 +526,7 @@ export const AdminTimetableManagement = () => {
             >
               {facultyUsers.map((f) => (
                 <MenuItem key={f._id} value={f._id}>
-                  Prof. {f.fullName} ({f.email})
+                  Prof. {f.fullName} {f.employeeId ? `(${f.employeeId})` : ''} {f.designation ? `— ${f.designation}` : `(${f.email})`}
                 </MenuItem>
               ))}
             </TextField>
@@ -669,7 +730,7 @@ export const AdminTimetableManagement = () => {
                 >
                   {facultyUsers.map((f) => (
                     <MenuItem key={f._id} value={f._id}>
-                      Prof. {f.fullName}
+                      Prof. {f.fullName} {f.employeeId ? `(${f.employeeId})` : ''} {f.designation ? `— ${f.designation}` : ''}
                     </MenuItem>
                   ))}
                 </TextField>
@@ -687,7 +748,7 @@ export const AdminTimetableManagement = () => {
                   >
                     {facultyUsers.map((f) => (
                       <MenuItem key={f._id} value={f._id}>
-                        Prof. {f.fullName}
+                        Prof. {f.fullName} {f.employeeId ? `(${f.employeeId})` : ''} {f.designation ? `— ${f.designation}` : ''}
                       </MenuItem>
                     ))}
                   </TextField>

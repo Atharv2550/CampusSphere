@@ -271,8 +271,10 @@ All endpoints are hosted under `/api` and return standardized responses:
 - `PATCH /api/volunteering/registrations/:id/verify` — Award verified hours & certificate
 - `GET /api/analytics` — Fetch aggregated metrics
 - `GET /api/analytics/export-csv` — Export events analytics as CSV
-- `GET /api/admin/users` — Administrator user directory
-- `PATCH /api/admin/users/:id` — Suspend or reactivate user accounts
+- `GET /api/admin/users` — Administrator user directory with multi-field search and role filters
+- `PATCH /api/admin/users/:id` — Suspend or reactivate user accounts with last-admin safeguard
+- `POST /api/admin/faculty` — Create new faculty account (Admin only; server-enforced role, bcrypt hash, unique email & employee ID)
+- `PUT /api/admin/faculty/:id` — Update faculty profile, academic rank, department, and credentials (Admin only)
 - `GET /api/timetable/my` — Fetch faculty weekly academic schedule
 - `POST /api/timetable` — Administrator creates timetable slot with conflict check
 - `POST /api/timetable/check-conflict` — Real-time server-side schedule conflict detection

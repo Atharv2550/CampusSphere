@@ -141,6 +141,8 @@ export const seedDatabase = async () => {
         department: cseDept._id,
         academicYear: 'Faculty/Staff',
         studentId: 'FAC-CSE-104',
+        employeeId: 'FAC-CSE-104',
+        designation: 'Associate Professor',
         bio: 'Associate Professor of Computer Science specializing in Distributed Systems & AI.',
         interests: ['Distributed Systems', 'Research', 'AI Workshops'],
       },

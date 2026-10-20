@@ -124,4 +124,33 @@
   - All client tests passing (`npm --prefix client test`).
   - Client production build succeeded (`npm --prefix client run build`) with zero linting or JSX errors.
 
+### Phase 9: Admin Faculty Management & Secure Faculty Account Creation
+- [x] **User Schema Enhancements (`server/models/User.js`)**:
+  - Added `employeeId`: `{ type: String, trim: true, uppercase: true, unique: true, sparse: true, index: true }`.
+  - Added `designation`: `{ type: String, trim: true, default: '' }`.
+  - Maintained `academicYear: 'Faculty/Staff'` enum alignment and automatic bcrypt pre-save password hashing.
+- [x] **Secure Backend Administration Endpoints (`server/controllers/adminController.js`, `server/routes/adminRoutes.js`)**:
+  - `POST /api/admin/faculty`: Strictly admin-protected creation endpoint enforcing `role: 'faculty'`, campus email validation, duplicate email 409 rejection, duplicate employee ID 409 rejection, bcrypt hashing, and `FACULTY_ACCOUNT_CREATED` audit logging.
+  - `PUT /api/admin/faculty/:id`: Faculty profile editing with unique email/employeeId checks, optional credential reset, and `FACULTY_ACCOUNT_UPDATED` audit logging.
+  - `getUsers` search upgraded to query across `fullName`, `email`, `studentId`, `employeeId`, and `designation`.
+  - Protected the last active administrator against suspension or demotion across all update routes.
+  - Fixed AuditLog field names (`targetType`, `targetId`) in `server/controllers/academicScheduleController.js`.
+- [x] **Admin Portal User Accounts Directory (`client/src/features/admin/AdminPortalPage.jsx`)**:
+  - Prominent "+ Add Faculty Account" button in directory header.
+  - Functional "Create New Faculty Account" dialog with Full Name, Official College Email, Employee ID, Department dropdown, Academic Designation dropdown, Phone Number, Account Status, and Initial Password (with show/hide and random strong password generator).
+  - Interactive "Edit Faculty Profile" dialog for updating faculty information and resetting passwords.
+  - Role filter pills with real-time user counts: `All`, `Faculty`, `Students`, `Coordinators`, `Admins`, `Resource Managers`.
+  - Real-time search by Name, Employee ID, Email, Department, and Designation.
+  - Department and Account Status filter selectors.
+  - Customized table rows for Faculty accounts showing Employee ID badges (`FAC-CSE-104`), Designation chips, contact info, and direct quick-action buttons.
+- [x] **Timetable Assignment Integration (`client/src/features/admin/AdminTimetableManagement.jsx`)**:
+  - One-click "Assign Timetable" on any faculty row smoothly navigates to Tab 4 with `initialFacultyId` preselected.
+  - Timetable Entries table now features a "Filter by Faculty Member" selector to view specific faculty schedules.
+  - All faculty assignment dropdowns (Timetable modal, Duty modal, Substitution original instructor) now display full name, Employee ID, and Academic Rank.
+- [x] **Testing & Verification**:
+  - Created `server/tests/facultyManagement.test.js` with 13 comprehensive integration tests: RBAC restrictions, 401 unauthenticated block, 403 student block, 400 validation errors, 409 duplicate email/employee ID rejections, successful faculty login, profile updates, and admin safeguards.
+  - Full backend test suite passing: 49/49 tests passing across 4 test suites.
+  - Verified client production bundle build (`npm run build`) passing with zero errors.
+
+
 

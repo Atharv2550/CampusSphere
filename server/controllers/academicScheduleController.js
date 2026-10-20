@@ -183,10 +183,10 @@ export const createTimetableEntry = async (req, res, next) => {
     await AuditLog.create({
       user: req.user._id,
       action: 'CREATE_TIMETABLE_ENTRY',
-      entity: 'TimetableEntry',
-      entityId: entry._id,
+      targetType: 'TimetableEntry',
+      targetId: entry._id,
       details: { faculty, subject, dayOfWeek, startTime, endTime, room },
-      ipAddress: req.ip,
+      ipAddress: req.ip || '',
     });
 
     return res.status(201).json({

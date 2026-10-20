@@ -19,6 +19,8 @@ export const getUsers = async (req, res, next) => {
         { fullName: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
         { studentId: { $regex: search, $options: 'i' } },
+        { employeeId: { $regex: search, $options: 'i' } },
+        { designation: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -57,6 +59,17 @@ export const updateUserStatus = async (req, res, next) => {
     // Safety: prevent suspending oneself
     if (user._id.toString() === req.user._id.toString()) {
       return res.status(400).json({ success: false, message: 'Administrators cannot change their own status or role.' });
+    }
+
+    // Safety: protect the last remaining active administrator
+    if (user.role === 'admin' && (status === 'suspended' || (role && role !== 'admin'))) {
+      const activeAdminsCount = await User.countDocuments({ role: 'admin', status: 'active' });
+      if (activeAdminsCount <= 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Operation denied: Cannot deactivate or demote the last remaining active administrator.',
+        });
+      }
     }
 
     if (status) user.status = status;
@@ -219,6 +232,249 @@ export const updatePlatformSetting = async (req, res, next) => {
       success: true,
       message: `Platform setting "${key}" updated.`,
       data: setting,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createFaculty = async (req, res, next) => {
+  try {
+    const {
+      fullName,
+      email,
+      employeeId,
+      department,
+      designation,
+      phoneNumber,
+      status = 'active',
+      password,
+    } = req.body;
+
+    // Validate required fields
+    if (!fullName?.trim() || !email?.trim() || !employeeId?.trim() || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Full name, official college email, employee ID, and initial password are required.',
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Initial password must be at least 6 characters long.',
+      });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanEmployeeId = employeeId.toUpperCase().trim();
+
+    // Campus email domain validation if configured
+    if (process.env.REQUIRE_CAMPUS_EMAIL === 'true') {
+      const allowedDomain = process.env.ALLOWED_EMAIL_DOMAIN || 'campussphere.edu';
+      if (!cleanEmail.endsWith(`@${allowedDomain}`)) {
+        return res.status(400).json({
+          success: false,
+          message: `Official faculty email must end with @${allowedDomain}`,
+        });
+      }
+    }
+
+    // Check unique email
+    const existingEmail = await User.findOne({ email: cleanEmail });
+    if (existingEmail) {
+      return res.status(409).json({
+        success: false,
+        message: `An account with email "${cleanEmail}" already exists.`,
+      });
+    }
+
+    // Check unique employeeId
+    const existingEmpId = await User.findOne({ employeeId: cleanEmployeeId });
+    if (existingEmpId) {
+      return res.status(409).json({
+        success: false,
+        message: `A faculty member with Employee ID "${cleanEmployeeId}" already exists.`,
+      });
+    }
+
+    // Role is strictly enforced on server as 'faculty'
+    const newFaculty = new User({
+      fullName: fullName.trim(),
+      email: cleanEmail,
+      employeeId: cleanEmployeeId,
+      password, // Pre-save hook securely hashes with bcrypt
+      role: 'faculty',
+      department: department || null,
+      designation: designation?.trim() || 'Assistant Professor',
+      phoneNumber: phoneNumber?.trim() || '',
+      academicYear: 'Faculty/Staff',
+      status: ['active', 'suspended', 'pending'].includes(status) ? status : 'active',
+    });
+
+    await newFaculty.save();
+    await newFaculty.populate('department', 'name code');
+
+    // Audit log
+    await logAuditEvent({
+      user: req.user,
+      action: 'FACULTY_ACCOUNT_CREATED',
+      targetType: 'User',
+      targetId: newFaculty._id,
+      details: {
+        fullName: newFaculty.fullName,
+        email: newFaculty.email,
+        employeeId: newFaculty.employeeId,
+        department: newFaculty.department?.name,
+        designation: newFaculty.designation,
+        status: newFaculty.status,
+      },
+      req,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Faculty account for ${newFaculty.fullName} (${newFaculty.employeeId}) created successfully.`,
+      data: {
+        _id: newFaculty._id,
+        fullName: newFaculty.fullName,
+        email: newFaculty.email,
+        employeeId: newFaculty.employeeId,
+        role: newFaculty.role,
+        department: newFaculty.department,
+        designation: newFaculty.designation,
+        phoneNumber: newFaculty.phoneNumber,
+        status: newFaculty.status,
+        academicYear: newFaculty.academicYear,
+        createdAt: newFaculty.createdAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateFaculty = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const {
+      fullName,
+      email,
+      employeeId,
+      department,
+      designation,
+      phoneNumber,
+      status,
+      password,
+    } = req.body;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Faculty user not found.' });
+    }
+
+    // Safety: prevent suspending oneself
+    if (user._id.toString() === req.user._id.toString() && status === 'suspended') {
+      return res.status(400).json({
+        success: false,
+        message: 'Administrators cannot suspend their own account.',
+      });
+    }
+
+    // Safety: protect last active admin
+    if (user.role === 'admin' && status === 'suspended') {
+      const activeAdminsCount = await User.countDocuments({ role: 'admin', status: 'active' });
+      if (activeAdminsCount <= 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Operation denied: Cannot deactivate the last remaining active administrator.',
+        });
+      }
+    }
+
+    // Check unique email if changing email
+    if (email) {
+      const cleanEmail = email.toLowerCase().trim();
+      if (cleanEmail !== user.email) {
+        const existingEmail = await User.findOne({ email: cleanEmail, _id: { $ne: user._id } });
+        if (existingEmail) {
+          return res.status(409).json({
+            success: false,
+            message: `An account with email "${cleanEmail}" already exists.`,
+          });
+        }
+        user.email = cleanEmail;
+      }
+    }
+
+    // Check unique employeeId if changing
+    if (employeeId) {
+      const cleanEmpId = employeeId.toUpperCase().trim();
+      if (cleanEmpId !== user.employeeId) {
+        const existingEmp = await User.findOne({ employeeId: cleanEmpId, _id: { $ne: user._id } });
+        if (existingEmp) {
+          return res.status(409).json({
+            success: false,
+            message: `A faculty member with Employee ID "${cleanEmpId}" already exists.`,
+          });
+        }
+        user.employeeId = cleanEmpId;
+      }
+    }
+
+    if (fullName?.trim()) user.fullName = fullName.trim();
+    if (department !== undefined) user.department = department || null;
+    if (designation !== undefined) user.designation = designation.trim();
+    if (phoneNumber !== undefined) user.phoneNumber = phoneNumber.trim();
+    if (status && ['active', 'suspended', 'pending'].includes(status)) user.status = status;
+
+    // Password reset by admin
+    if (password) {
+      if (password.length < 6) {
+        return res.status(400).json({
+          success: false,
+          message: 'New password must be at least 6 characters long.',
+        });
+      }
+      user.password = password; // Will be hashed by pre('save') hook
+    }
+
+    await user.save();
+    await user.populate('department', 'name code');
+
+    // Audit log
+    await logAuditEvent({
+      user: req.user,
+      action: 'FACULTY_ACCOUNT_UPDATED',
+      targetType: 'User',
+      targetId: user._id,
+      details: {
+        fullName: user.fullName,
+        email: user.email,
+        employeeId: user.employeeId,
+        department: user.department?.name,
+        designation: user.designation,
+        status: user.status,
+      },
+      req,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Faculty member ${user.fullName} updated successfully.`,
+      data: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        employeeId: user.employeeId,
+        role: user.role,
+        department: user.department,
+        designation: user.designation,
+        phoneNumber: user.phoneNumber,
+        status: user.status,
+        academicYear: user.academicYear,
+        updatedAt: user.updatedAt,
+      },
     });
   } catch (error) {
     next(error);
